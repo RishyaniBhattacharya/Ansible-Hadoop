@@ -1,0 +1,43 @@
+---
+- name: Install Hadoop on datanode
+  hosts: localhost
+  tasks:
+  - name: Copy Hadoop packages
+    copy:
+      src: hadoop-1.2.1-1.x86_64.rpm
+      dest: /tmp/hadoop-1.2.1-1.x86_64.rpm
+
+  - name: Copy java package
+    copy:
+      src: jdk-8u171-linux-x64.rpm
+      dest: /tmp/jdk-8u171-linux-x64.rpm
+
+  - name: Install hadoop package
+    command: rpm -i /tmp/hadoop-1.2.1-1.x86_64.rpm --force
+    run_once: yes
+
+  - name: Install java packages
+    command: rpm -i /tmp/jdk-8u171-linux-x64.rpm --force
+    run_once: yes
+
+  - name: Copy core-site.xml configuration file
+    template:
+      src: core-site.xml.j2
+      dest: /etc/hadoop/core-site.xml
+    notify: Start hadoop services
+
+  - name: Copy hdfs-site.xml configuration file
+    template:
+      src: hdfs-site.xml.j2
+      dest: /etc/hdfs-site.xml
+    notify: Start hadoop services
+
+  - name: Create master node directory
+    file:
+      path: /dn1
+      state: directory
+    
+  
+  handlers:
+  - name: Start hadoop services
+    command: hadoop-daemon.sh start datanode
